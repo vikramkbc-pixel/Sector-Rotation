@@ -39,7 +39,7 @@
       </div>
 
       <button id="syncBtn" onclick="syncLiveYahooData()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
-        <span id="syncIcon">⚡</span> <span id="syncText">Sync Live EOD Data</span>
+        <span id="syncIcon">⚡</span> <span id="syncText">Auto-Sync (1m)</span>
       </button>
 
       <button onclick="animateRotation()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">▶ Animate 5W</button>
@@ -57,7 +57,7 @@
     </div>
     <div class="flex items-center gap-3 text-slate-400">
       <span id="benchmarkLabel" class="mono">Benchmark: <strong class="text-white">NIFTY 50 (^NSEI)</strong></span>
-      <span id="statusLabel" class="text-emerald-400 mono">● Scroll to Zoom • Drag to Pan • Double-Click to Reset</span>
+      <span id="statusLabel" class="text-emerald-400 mono">● Auto-Refresh Active (Every 60s)</span>
     </div>
   </div>
 
@@ -212,7 +212,6 @@
       drawRRG();
     }
 
-    // Mouse Wheel Zoom (centered at cursor like TradingView)
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const rect = canvas.getBoundingClientRect();
@@ -230,7 +229,6 @@
       const zoomFactor = e.deltaY < 0 ? 0.85 : 1.18;
       const newSpan = Math.max(0.6, Math.min(15.0, zoomSpan * zoomFactor));
 
-      // Keep cursor point anchored while zooming
       centerX = valX - ((mouseX / rect.width) - 0.5) * (2 * newSpan);
       centerY = valY + ((mouseY / rect.height) - 0.5) * (2 * newSpan);
       zoomSpan = newSpan;
@@ -238,7 +236,6 @@
       drawRRG();
     }, { passive: false });
 
-    // Click and Drag Panning
     canvas.addEventListener('mousedown', (e) => {
       isDragging = true;
       dragStartX = e.clientX;
@@ -263,7 +260,6 @@
       isDragging = false;
     });
 
-    // Double-click to Reset View
     canvas.addEventListener('dblclick', () => {
       resetZoom();
     });
@@ -330,7 +326,6 @@
 
       ctx.clearRect(0, 0, w, h);
 
-      // Quadrant background shading anchored to (100, 100)
       const clampX = Math.max(0, Math.min(w, cx));
       const clampY = Math.max(0, Math.min(h, cy));
 
@@ -339,7 +334,6 @@
       ctx.fillStyle = 'rgba(244, 63, 94, 0.04)'; ctx.fillRect(0, clampY, clampX, h - clampY);
       ctx.fillStyle = 'rgba(56, 189, 248, 0.04)'; ctx.fillRect(0, 0, clampX, clampY);
 
-      // Dynamic Grid Lines
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.1)';
       ctx.lineWidth = 1;
       const step = zoomSpan < 2 ? 0.5 : 1;
@@ -350,21 +344,18 @@
         ctx.beginPath(); ctx.moveTo(0, toY(v)); ctx.lineTo(w, toY(v)); ctx.stroke();
       }
 
-      // 100-Center Crosshair
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
       ctx.setLineDash([5, 5]);
       ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
       ctx.setLineDash([]);
 
-      // Corner Labels
       ctx.font = 'bold 11px Inter';
       ctx.fillStyle = 'rgba(16, 185, 129, 0.4)'; ctx.fillText('LEADING', w - 65, 18);
       ctx.fillStyle = 'rgba(245, 158, 11, 0.4)'; ctx.fillText('WEAKENING', w - 82, h - 28);
       ctx.fillStyle = 'rgba(244, 63, 94, 0.4)'; ctx.fillText('LAGGING', 10, h - 10);
       ctx.fillStyle = 'rgba(56, 189, 248, 0.4)'; ctx.fillText('IMPROVING', 10, 18);
 
-      // Plot Sector Tails
       datasets[currentMarket].filter(s => s.vis).forEach(s => {
         const pts = s.tail.slice(0, animStep + 1);
         const last = pts[pts.length - 1];
@@ -449,11 +440,14 @@
       return data.chart.result[0].indicators.quote[0].close.filter(v => v != null);
     }
 
+    let isSyncing = false;
     async function syncLiveYahooData() {
+      if (isSyncing) return;
+      isSyncing = true;
       const btnText = document.getElementById('syncText');
       const status = document.getElementById('statusLabel');
-      btnText.textContent = 'Syncing Live EOD...';
-      status.textContent = '● Fetching Yahoo Finance EOD candles...';
+      btnText.textContent = 'Syncing...';
+      status.textContent = '● Auto-Syncing Yahoo Finance candles...';
       try {
         const benchTicker = currentMarket === 'IN' ? '^NSEI' : 'SPY';
         const benchCloses = await fetchYahooCloses(benchTicker);
@@ -482,12 +476,13 @@
             }
           } catch (innerErr) {}
         }
-        status.textContent = '● Live EOD Synced (' + new Date().toLocaleTimeString() + ')';
+        status.textContent = '● Live Synced (' + new Date().toLocaleTimeString() + ' • Auto 1m)';
         renderAll();
       } catch (e) {
-        status.textContent = '● Using Curated EOD Snapshot (CORS fallback)';
+        status.textContent = '● Using Curated EOD Snapshot (Auto-retry in 1m)';
       }
-      btnText.textContent = 'Sync Live EOD Data';
+      btnText.textContent = 'Auto-Sync (1m)';
+      isSyncing = false;
     }
 
     function addCustomSymbol() {
@@ -522,6 +517,10 @@
 
     window.addEventListener('resize', drawRRG);
     renderAll();
+
+    // Automatically sync on load and repeat every 60 seconds
+    syncLiveYahooData();
+    setInterval(syncLiveYahooData, 60000);
   </script>
 </body>
 </html>
