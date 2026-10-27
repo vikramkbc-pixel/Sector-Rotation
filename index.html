@@ -28,24 +28,20 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
-      <!-- Market Toggle -->
       <div class="bg-slate-950 p-1 rounded-lg border border-slate-800 flex">
         <button id="btnIndia" onclick="switchMarket('IN')" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-indigo-600 text-white transition">🇮🇳 India NSE (24)</button>
         <button id="btnGlobal" onclick="switchMarket('GL')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition">🌐 Global & US (23)</button>
       </div>
 
-      <!-- Custom Symbol Input -->
       <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
         <input id="customTicker" type="text" placeholder="Add e.g. RELIANCE.NS, NVDA" class="bg-transparent text-xs text-white focus:outline-none w-36 mono">
         <button onclick="addCustomSymbol()" class="text-xs bg-slate-800 hover:bg-slate-700 text-indigo-400 font-semibold px-2 py-1 rounded">Plot</button>
       </div>
 
-      <!-- Sync Live Data Button -->
       <button id="syncBtn" onclick="syncLiveYahooData()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
         <span id="syncIcon">⚡</span> <span id="syncText">Sync Live EOD Data</span>
       </button>
 
-      <!-- Animate Button -->
       <button onclick="animateRotation()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">▶ Animate 5W</button>
     </div>
   </header>
@@ -69,13 +65,13 @@
   <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
     <!-- Left 7 Cols: Interactive RRG Canvas -->
     <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-xl p-3 flex flex-col">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-3 text-xs">
-          <span class="font-semibold text-white">4-Quadrant Relative Rotation Graph (5-Week Tails)</span>
-          <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Leading (Top-Right)</span>
-          <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Weakening (Bottom-Right)</span>
-          <span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">Lagging (Bottom-Left)</span>
-          <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">Improving (Top-Left)</span>
+      <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <div class="flex items-center gap-2 text-xs flex-wrap">
+          <span class="font-semibold text-white">4-Quadrant RRG (Click Quadrant to Filter):</span>
+          <button onclick="filterQuadrant('Leading')" class="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 transition cursor-pointer">Leading</button>
+          <button onclick="filterQuadrant('Weakening')" class="px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 transition cursor-pointer">Weakening</button>
+          <button onclick="filterQuadrant('Lagging')" class="px-2 py-0.5 rounded bg-rose-500/10 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition cursor-pointer">Lagging</button>
+          <button onclick="filterQuadrant('Improving')" class="px-2 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 transition cursor-pointer">Improving</button>
         </div>
         <div class="flex items-center gap-1">
           <button onclick="toggleAllVisibility(true)" class="text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">Show All</button>
@@ -131,7 +127,6 @@
   <script>
     const datasets = {
       IN: [
-        // 15 Core NSE Sectors
         { id: 'CNXIT', name: 'Nifty IT', yf: '^CNXIT', tv: 'NSE:CNXIT', cat: 'CORE', vis: true, flow: '+₹2,480 Cr (Acc)', tail: [[98.4,99.1],[99.2,100.3],[100.1,101.2],[101.0,101.9],[101.8,102.4]] },
         { id: 'CNXPHARMA', name: 'Nifty Pharma', yf: '^CNXPHARMA', tv: 'NSE:CNXPHARMA', cat: 'CORE', vis: true, flow: '+₹1,920 Cr (Long)', tail: [[99.5,100.4],[100.3,101.0],[101.2,101.5],[101.9,101.8],[102.5,102.1]] },
         { id: 'NSEBANK', name: 'Nifty Bank', yf: '^NSEBANK', tv: 'NSE:BANKNIFTY', cat: 'CORE', vis: true, flow: '+₹1,150 Cr (Rebound)', tail: [[98.1,97.8],[98.0,98.6],[98.4,99.5],[99.1,100.4],[99.8,101.1]] },
@@ -141,26 +136,23 @@
         { id: 'CNXREALTY', name: 'Nifty Realty', yf: '^CNXREALTY', tv: 'NSE:CNXREALTY', cat: 'CORE', vis: true, flow: '-₹490 Cr (Weakening)', tail: [[103.1,101.0],[102.6,100.1],[101.9,99.3],[101.1,98.7],[100.4,98.2]] },
         { id: 'CNXENERGY', name: 'Nifty Energy', yf: '^CNXENERGY', tv: 'NSE:CNXENERGY', cat: 'CORE', vis: true, flow: '-₹1,850 Cr (Short Build)', tail: [[100.4,98.9],[99.7,98.2],[99.0,97.6],[98.3,97.2],[97.7,96.9]] },
         { id: 'CNXPSUBANK', name: 'Nifty PSU Bank', yf: '^CNXPSUBANK', tv: 'NSE:CNXPSUBANK', cat: 'CORE', vis: true, flow: '+₹680 Cr (Bottoming)', tail: [[96.8,97.4],[96.9,98.3],[97.3,99.2],[97.9,100.1],[98.6,100.7]] },
-        { id: 'NIFTYPVTBANK', name: 'Nifty Pvt Bank', yf: 'NIFTYPVTBANK.NS', tv: 'NSE:NIFTYPVTBANK', cat: 'CORE', vis: true, flow: '+₹920 Cr (Improving)', tail: [[97.9,98.1],[98.2,99.0],[98.7,99.8],[99.3,100.5],[99.9,101.0]] },
+        { id: 'NIFTYPVTBANK', name: 'Nifty Pvt Bank', yf: 'NIFTYPVTBANK.NS', tv: 'NSE:NIFTY_PVT_BANK', cat: 'CORE', vis: true, flow: '+₹920 Cr (Improving)', tail: [[97.9,98.1],[98.2,99.0],[98.7,99.8],[99.3,100.5],[99.9,101.0]] },
         { id: 'CNXFINANCE', name: 'Nifty Fin Services', yf: 'NIFTY_FIN_SERVICE.NS', tv: 'NSE:CNXFINANCE', cat: 'CORE', vis: true, flow: '+₹1,310 Cr (Long Build)', tail: [[98.6,99.0],[99.1,99.8],[99.7,100.5],[100.3,101.1],[100.9,101.5]] },
         { id: 'HEALTHCARE', name: 'Nifty Healthcare', yf: '^CNXPHARMA', tv: 'NSE:NIFTY_HEALTHCARE', cat: 'CORE', vis: false, flow: '+₹1,420 Cr (Leading)', tail: [[99.8,100.5],[100.5,101.1],[101.3,101.6],[102.0,101.9],[102.6,102.2]] },
         { id: 'CONSDUR', name: 'Nifty Cons Durables', yf: '^CNXCONSUM', tv: 'NSE:NIFTY_CONSR_DURBL', cat: 'CORE', vis: false, flow: '+₹540 Cr (Steady)', tail: [[99.2,99.7],[99.6,100.2],[100.1,100.6],[100.5,100.9],[100.9,101.1]] },
         { id: 'OILGAS', name: 'Nifty Oil & Gas', yf: '^CNXENERGY', tv: 'NSE:NIFTY_OIL_AND_GAS', cat: 'CORE', vis: false, flow: '-₹980 Cr (Lagging)', tail: [[99.9,98.6],[99.2,98.0],[98.6,97.5],[98.0,97.2],[97.5,97.0]] },
         { id: 'CNXMEDIA', name: 'Nifty Media', yf: '^CNXMEDIA', tv: 'NSE:CNXMEDIA', cat: 'CORE', vis: false, flow: '-₹310 Cr (Underperform)', tail: [[97.2,97.9],[96.8,97.5],[96.5,97.2],[96.2,97.0],[96.0,96.8]] },
-        // 7 Smart Money & Thematic Indices
         { id: 'DEFENCE', name: 'Nifty India Defence', yf: '^CNXPSE', tv: 'NSE:CNXPSE', cat: 'THEME', vis: true, flow: '+₹1,640 Cr (Smart Money)', tail: [[97.8,99.0],[98.5,100.1],[99.3,101.0],[100.1,101.7],[101.0,102.3]] },
         { id: 'CNXINFRA', name: 'Nifty Infra', yf: '^CNXINFRA', tv: 'NSE:CNXINFRA', cat: 'THEME', vis: true, flow: '+₹790 Cr (Rotation In)', tail: [[99.1,99.4],[99.5,100.0],[100.0,100.5],[100.4,100.9],[100.8,101.2]] },
         { id: 'CNXPSE', name: 'Nifty PSE', yf: '^CNXPSE', tv: 'NSE:CNXPSE', cat: 'THEME', vis: false, flow: '-₹420 Cr (Cooling)', tail: [[101.8,100.1],[101.2,99.5],[100.6,99.0],[100.1,98.6],[99.6,98.4]] },
         { id: 'CPSE', name: 'Nifty CPSE', yf: '^CNXPSE', tv: 'NSE:NIFTYCPSE', cat: 'THEME', vis: false, flow: '-₹350 Cr (Cooling)', tail: [[101.5,99.9],[100.9,99.3],[100.4,98.9],[99.9,98.5],[99.5,98.3]] },
         { id: 'CNXCMDT', name: 'Nifty Commodities', yf: '^CNXCMDT', tv: 'NSE:CNXCMDT', cat: 'THEME', vis: false, flow: '+₹610 Cr (Improving)', tail: [[98.3,98.9],[98.7,99.6],[99.2,100.2],[99.8,100.7],[100.3,101.1]] },
-        { id: 'CNXCONSUM', name: 'Nifty Consumption', yf: '^CNXCONSUM', tv: 'NSE:CNXCONSUM', cat: 'THEME', vis: false, flow: '+₹410 Cr (Neutral)', tail: [[100.4,100.1],[100.3,99.9],[100.1,99.7],[100.0,99.6],[99.9,99.5]] },
-        { id: 'CNXMNC', name: 'Nifty MNC', yf: '^CNXMNC', tv: 'NSE:CNXMNC', cat: 'THEME', vis: false, flow: '+₹290 Cr (Defensive)', tail: [[99.4,99.6],[99.6,99.9],[99.8,100.1],[100.0,100.3],[100.2,100.4]] },
-        // 2 Market Cap Indices
+        { id: 'CNXCONSUM', name: 'Nifty Consumption', yf: '^CNXCONSUM', tv: 'NSE:NIFTY_CONSUMPTION', cat: 'THEME', vis: false, flow: '+₹410 Cr (Neutral)', tail: [[100.4,100.1],[100.3,99.9],[100.1,99.7],[100.0,99.6],[99.9,99.5]] },
+        { id: 'CNXMNC', name: 'Nifty MNC', yf: '^CNXMNC', tv: 'NSE:CNX_MNC', cat: 'THEME', vis: false, flow: '+₹290 Cr (Defensive)', tail: [[99.4,99.6],[99.6,99.9],[99.8,100.1],[100.0,100.3],[100.2,100.4]] },
         { id: 'MIDCAP', name: 'Nifty Midcap 100', yf: '^CNXMIDCAP', tv: 'NSE:CNXMIDCAP', cat: 'MACRO', vis: true, flow: '+₹1,890 Cr (DII SIP Inflow)', tail: [[100.2,100.4],[100.6,100.8],[101.0,101.1],[101.3,101.4],[101.6,101.6]] },
         { id: 'SMALLCAP', name: 'Nifty Smallcap 100', yf: '^CNXSMALLCAP', tv: 'NSE:CNXSMALLCAP', cat: 'MACRO', vis: true, flow: '+₹1,120 Cr (High Beta)', tail: [[99.0,99.8],[99.5,100.4],[100.1,100.9],[100.6,101.3],[101.1,101.7]] }
       ],
       GL: [
-        // 11 Official GICS US/Global Sectors
         { id: 'XLK', name: 'US Technology (XLK)', yf: 'XLK', tv: 'AMEX:XLK', cat: 'CORE', vis: true, flow: '+$3.4B (AI Inflow)', tail: [[99.6,100.5],[100.4,101.2],[101.1,101.8],[101.8,102.2],[102.4,102.6]] },
         { id: 'XLF', name: 'US Financials (XLF)', yf: 'XLF', tv: 'AMEX:XLF', cat: 'CORE', vis: true, flow: '+$1.9B (Long Build)', tail: [[100.2,100.6],[100.8,101.0],[101.3,101.4],[101.7,101.6],[102.1,101.8]] },
         { id: 'XLI', name: 'US Industrials (XLI)', yf: 'XLI', tv: 'AMEX:XLI', cat: 'CORE', vis: true, flow: '+$1.1B (Steady Acc)', tail: [[100.5,100.4],[100.8,100.6],[101.1,100.8],[101.3,100.9],[101.5,101.0]] },
@@ -172,7 +164,6 @@
         { id: 'XLE', name: 'US Energy (XLE)', yf: 'XLE', tv: 'AMEX:XLE', cat: 'CORE', vis: true, flow: '-$1.5B (Lagging)', tail: [[98.9,98.2],[98.3,97.8],[97.8,97.4],[97.4,97.1],[97.0,96.8]] },
         { id: 'XLRE', name: 'US Real Estate (XLRE)', yf: 'XLRE', tv: 'AMEX:XLRE', cat: 'CORE', vis: false, flow: '-$320M (Weakening)', tail: [[101.2,99.8],[100.8,99.3],[100.3,98.9],[99.9,98.6],[99.5,98.3]] },
         { id: 'XLB', name: 'US Materials (XLB)', yf: 'XLB', tv: 'AMEX:XLB', cat: 'CORE', vis: false, flow: '+$290M (Rebound)', tail: [[98.7,99.1],[99.0,99.6],[99.4,100.0],[99.7,100.3],[100.0,100.6]] },
-        // 7 Global Smart Money Sub-Sectors
         { id: 'SMH', name: 'Semiconductors (SMH)', yf: 'SMH', tv: 'NASDAQ:SMH', cat: 'THEME', vis: true, flow: '+$2.8B (Smart Money)', tail: [[99.2,100.8],[100.2,101.7],[101.2,102.4],[102.1,102.9],[102.9,103.3]] },
         { id: 'ITA', name: 'Aerospace & Defense (ITA)', yf: 'ITA', tv: 'BATS:ITA', cat: 'THEME', vis: true, flow: '+$950M (Breakout)', tail: [[100.4,100.7],[100.9,101.1],[101.4,101.5],[101.8,101.8],[102.2,102.0]] },
         { id: 'GDX', name: 'Gold Miners (GDX)', yf: 'GDX', tv: 'AMEX:GDX', cat: 'THEME', vis: true, flow: '+$1.1B (Hedge Inflow)', tail: [[100.8,101.2],[101.3,101.5],[101.7,101.7],[102.0,101.8],[102.3,101.9]] },
@@ -180,7 +171,6 @@
         { id: 'KRE', name: 'US Regional Banks (KRE)', yf: 'KRE', tv: 'AMEX:KRE', cat: 'THEME', vis: false, flow: '+$490M (Improving)', tail: [[98.2,99.0],[98.8,99.7],[99.4,100.3],[99.9,100.8],[100.4,101.2]] },
         { id: 'XBI', name: 'Biotech (XBI)', yf: 'XBI', tv: 'AMEX:XBI', cat: 'THEME', vis: false, flow: '+$310M (Neutral)', tail: [[99.1,99.5],[99.4,99.8],[99.7,100.1],[99.9,100.3],[100.1,100.4]] },
         { id: 'IWM', name: 'Russell 2000 SmallCap (IWM)', yf: 'IWM', tv: 'AMEX:IWM', cat: 'THEME', vis: true, flow: '+$1.6B (Breadth Expansion)', tail: [[98.6,99.4],[99.2,100.1],[99.8,100.6],[100.3,101.0],[100.8,101.4]] },
-        // 5 Global Country Rotation ETFs
         { id: 'INDA', name: 'MSCI India ETF (INDA)', yf: 'INDA', tv: 'BATS:INDA', cat: 'MACRO', vis: true, flow: '+$1.2B (Struct. Inflow)', tail: [[99.5,100.1],[100.0,100.6],[100.5,101.0],[100.9,101.3],[101.3,101.6]] },
         { id: 'FXI', name: 'China Large-Cap (FXI)', yf: 'FXI', tv: 'AMEX:FXI', cat: 'MACRO', vis: true, flow: '+$1.7B (Stimulus Swing)', tail: [[97.5,99.5],[98.6,100.7],[99.6,101.5],[100.4,102.0],[101.1,102.2]] },
         { id: 'EEM', name: 'Emerging Markets (EEM)', yf: 'EEM', tv: 'AMEX:EEM', cat: 'MACRO', vis: true, flow: '+$840M (Improving)', tail: [[98.8,99.5],[99.3,100.1],[99.8,100.5],[100.2,100.8],[100.6,101.1]] },
@@ -191,7 +181,7 @@
 
     let currentMarket = 'IN';
     let currentCategory = 'ALL';
-    let animStep = 4; // 0 to 4 (5 weeks)
+    let animStep = 4;
     let animTimer = null;
 
     const canvas = document.getElementById('rrgCanvas');
@@ -227,6 +217,15 @@
       renderAll();
     }
 
+    function filterQuadrant(quadName) {
+      datasets[currentMarket].forEach(item => {
+        const last = item.tail[animStep];
+        const q = getQuadrant(last[0], last[1]);
+        item.vis = (q.name === quadName);
+      });
+      renderAll();
+    }
+
     function toggleAllVisibility(state) {
       datasets[currentMarket].forEach(s => s.vis = state);
       renderAll();
@@ -251,13 +250,11 @@
       const toY = v => h - ((v - minVal) / (maxVal - minVal)) * h;
       const cx = toX(100), cy = toY(100);
 
-      // Quadrant Fills
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.04)'; ctx.fillRect(cx, 0, w - cx, cy); // Leading
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.04)'; ctx.fillRect(cx, cy, w - cx, h - cy); // Weakening
-      ctx.fillStyle = 'rgba(244, 63, 94, 0.04)'; ctx.fillRect(0, cy, cx, h - cy); // Lagging
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.04)'; ctx.fillRect(0, 0, cx, cy); // Improving
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.04)'; ctx.fillRect(cx, 0, w - cx, cy);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.04)'; ctx.fillRect(cx, cy, w - cx, h - cy);
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.04)'; ctx.fillRect(0, cy, cx, h - cy);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.04)'; ctx.fillRect(0, 0, cx, cy);
 
-      // Grid lines
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.1)';
       ctx.lineWidth = 1;
       for (let v = 96; v <= 104; v += 1) {
@@ -265,27 +262,23 @@
         ctx.beginPath(); ctx.moveTo(0, toY(v)); ctx.lineTo(w, toY(v)); ctx.stroke();
       }
 
-      // Center 100 Crosshair
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
       ctx.setLineDash([5, 5]);
       ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
       ctx.setLineDash([]);
 
-      // Quadrant Watermarks
       ctx.font = 'bold 12px Inter';
       ctx.fillStyle = 'rgba(16, 185, 129, 0.35)'; ctx.fillText('LEADING (STRONG RS + MOM)', w - 205, 22);
       ctx.fillStyle = 'rgba(245, 158, 11, 0.35)'; ctx.fillText('WEAKENING', w - 95, h - 12);
       ctx.fillStyle = 'rgba(244, 63, 94, 0.35)'; ctx.fillText('LAGGING (WEAK RS + MOM)', 14, h - 12);
       ctx.fillStyle = 'rgba(56, 189, 248, 0.35)'; ctx.fillText('IMPROVING (SMART MONEY ENTRY)', 14, 22);
 
-      // Plot visible sectors
       datasets[currentMarket].filter(s => s.vis).forEach(s => {
         const pts = s.tail.slice(0, animStep + 1);
         const last = pts[pts.length - 1];
         const quad = getQuadrant(last[0], last[1]);
 
-        // Tail line
         ctx.beginPath();
         ctx.strokeStyle = quad.color;
         ctx.lineWidth = 2.2;
@@ -296,7 +289,6 @@
         });
         ctx.stroke();
 
-        // Historical dots
         pts.forEach((p, idx) => {
           const x = toX(p[0]), y = toY(p[1]);
           ctx.beginPath();
@@ -305,7 +297,6 @@
           ctx.fill();
         });
 
-        // Label
         const lx = toX(last[0]), ly = toY(last[1]);
         ctx.font = '600 11px Inter';
         ctx.fillStyle = '#f8fafc';
