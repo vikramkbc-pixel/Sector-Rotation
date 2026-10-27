@@ -57,7 +57,7 @@
     </div>
     <div class="flex items-center gap-3 text-slate-400">
       <span id="benchmarkLabel" class="mono">Benchmark: <strong class="text-white">NIFTY 50 (^NSEI)</strong></span>
-      <span id="statusLabel" class="text-emerald-400 mono">● Ready (Click sector row for Live Chart)</span>
+      <span id="statusLabel" class="text-emerald-400 mono">● Scroll to Zoom • Drag to Pan • Double-Click to Reset</span>
     </div>
   </div>
 
@@ -74,18 +74,19 @@
           <button onclick="filterQuadrant('Improving')" class="px-2 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 transition cursor-pointer">Improving</button>
         </div>
         <div class="flex items-center gap-1.5">
-          <!-- Zoom Controls -->
-          <button onclick="zoomIn()" class="text-[11px] px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 rounded text-white font-semibold transition" title="Zoom In (+)">🔍+</button>
-          <button onclick="zoomOut()" class="text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 font-semibold transition" title="Zoom Out (-)">🔍-</button>
-          <button onclick="resetZoom()" class="text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300" title="Reset Zoom">Reset</button>
+          <button onclick="zoomIn()" class="text-[11px] px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 rounded text-white font-semibold transition" title="Zoom In">🔍+</button>
+          <button onclick="zoomOut()" class="text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 font-semibold transition" title="Zoom Out">🔍-</button>
+          <button onclick="resetZoom()" class="text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300" title="Reset View">Reset</button>
           <button onclick="toggleAllVisibility(true)" class="text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">Show All</button>
           <button onclick="toggleAllVisibility(false)" class="text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">Clear</button>
         </div>
       </div>
 
-      <div class="relative flex-1 min-h-[480px] bg-slate-950 rounded-lg border border-slate-800 overflow-hidden">
-        <canvas id="rrgCanvas" class="w-full h-full cursor-crosshair"></canvas>
-        <div id="rrgTooltip" class="hidden absolute pointer-events-none bg-slate-900/95 border border-slate-700 rounded-lg p-2.5 text-xs shadow-xl z-20"></div>
+      <div class="relative flex-1 min-h-[480px] bg-slate-950 rounded-lg border border-slate-800 overflow-hidden select-none">
+        <canvas id="rrgCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+        <div class="absolute bottom-2 right-2 pointer-events-none bg-slate-900/80 border border-slate-800 px-2 py-1 rounded text-[10px] text-slate-400 mono">
+          🖱️ Wheel: Zoom | Drag: Pan | Dbl-Click: Reset
+        </div>
       </div>
     </div>
 
@@ -173,7 +174,16 @@
     let currentCategory = 'ALL';
     let animStep = 4;
     let animTimer = null;
-    let zoomSpan = 4.5; // Default range span around 100 (i.e. 95.5 to 104.5)
+
+    // Viewport state for Zoom & Pan
+    let zoomSpan = 4.5;
+    let centerX = 100.0;
+    let centerY = 100.0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let startCenterX = 100.0;
+    let startCenterY = 100.0;
 
     const canvas = document.getElementById('rrgCanvas');
     const ctx = canvas.getContext('2d');
@@ -186,19 +196,77 @@
     }
 
     function zoomIn() {
-      zoomSpan = Math.max(1.5, zoomSpan - 0.8);
-      renderAll();
+      zoomSpan = Math.max(0.8, zoomSpan * 0.8);
+      drawRRG();
     }
 
     function zoomOut() {
-      zoomSpan = Math.min(8.0, zoomSpan + 0.8);
-      renderAll();
+      zoomSpan = Math.min(12.0, zoomSpan * 1.25);
+      drawRRG();
     }
 
     function resetZoom() {
       zoomSpan = 4.5;
-      renderAll();
+      centerX = 100.0;
+      centerY = 100.0;
+      drawRRG();
     }
+
+    // Mouse Wheel Zoom (centered at cursor like TradingView)
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const minX = centerX - zoomSpan;
+      const maxX = centerX + zoomSpan;
+      const minY = centerY - zoomSpan;
+      const maxY = centerY + zoomSpan;
+
+      const valX = minX + (mouseX / rect.width) * (maxX - minX);
+      const valY = maxY - (mouseY / rect.height) * (maxY - minY);
+
+      const zoomFactor = e.deltaY < 0 ? 0.85 : 1.18;
+      const newSpan = Math.max(0.6, Math.min(15.0, zoomSpan * zoomFactor));
+
+      // Keep cursor point anchored while zooming
+      centerX = valX - ((mouseX / rect.width) - 0.5) * (2 * newSpan);
+      centerY = valY + ((mouseY / rect.height) - 0.5) * (2 * newSpan);
+      zoomSpan = newSpan;
+
+      drawRRG();
+    }, { passive: false });
+
+    // Click and Drag Panning
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      startCenterX = centerX;
+      startCenterY = centerY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const rect = canvas.getBoundingClientRect();
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+
+      const spanUnits = 2 * zoomSpan;
+      centerX = startCenterX - (dx / rect.width) * spanUnits;
+      centerY = startCenterY + (dy / rect.height) * spanUnits;
+      drawRRG();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Double-click to Reset View
+    canvas.addEventListener('dblclick', () => {
+      resetZoom();
+    });
 
     function switchMarket(m) {
       currentMarket = m;
@@ -251,36 +319,52 @@
       const w = rect.width;
       const h = rect.height;
 
-      const minVal = 100 - zoomSpan;
-      const maxVal = 100 + zoomSpan;
-      const toX = v => ((v - minVal) / (maxVal - minVal)) * w;
-      const toY = v => h - ((v - minVal) / (maxVal - minVal)) * h;
+      const minX = centerX - zoomSpan;
+      const maxX = centerX + zoomSpan;
+      const minY = centerY - zoomSpan;
+      const maxY = centerY + zoomSpan;
+
+      const toX = v => ((v - minX) / (maxX - minX)) * w;
+      const toY = v => h - ((v - minY) / (maxY - minY)) * h;
       const cx = toX(100), cy = toY(100);
 
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.04)'; ctx.fillRect(cx, 0, w - cx, cy);
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.04)'; ctx.fillRect(cx, cy, w - cx, h - cy);
-      ctx.fillStyle = 'rgba(244, 63, 94, 0.04)'; ctx.fillRect(0, cy, cx, h - cy);
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.04)'; ctx.fillRect(0, 0, cx, cy);
+      ctx.clearRect(0, 0, w, h);
 
+      // Quadrant background shading anchored to (100, 100)
+      const clampX = Math.max(0, Math.min(w, cx));
+      const clampY = Math.max(0, Math.min(h, cy));
+
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.04)'; ctx.fillRect(clampX, 0, w - clampX, clampY);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.04)'; ctx.fillRect(clampX, clampY, w - clampX, h - clampY);
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.04)'; ctx.fillRect(0, clampY, clampX, h - clampY);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.04)'; ctx.fillRect(0, 0, clampX, clampY);
+
+      // Dynamic Grid Lines
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.1)';
       ctx.lineWidth = 1;
-      for (let v = Math.ceil(minVal); v <= Math.floor(maxVal); v += 1) {
+      const step = zoomSpan < 2 ? 0.5 : 1;
+      for (let v = Math.floor(minX); v <= Math.ceil(maxX); v += step) {
         ctx.beginPath(); ctx.moveTo(toX(v), 0); ctx.lineTo(toX(v), h); ctx.stroke();
+      }
+      for (let v = Math.floor(minY); v <= Math.ceil(maxY); v += step) {
         ctx.beginPath(); ctx.moveTo(0, toY(v)); ctx.lineTo(w, toY(v)); ctx.stroke();
       }
 
+      // 100-Center Crosshair
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
       ctx.setLineDash([5, 5]);
       ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
       ctx.setLineDash([]);
 
+      // Corner Labels
       ctx.font = 'bold 11px Inter';
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.35)'; ctx.fillText('LEADING', w - 70, 18);
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.35)'; ctx.fillText('WEAKENING', w - 85, h - 10);
-      ctx.fillStyle = 'rgba(244, 63, 94, 0.35)'; ctx.fillText('LAGGING', 10, h - 10);
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.35)'; ctx.fillText('IMPROVING', 10, 18);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.4)'; ctx.fillText('LEADING', w - 65, 18);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.4)'; ctx.fillText('WEAKENING', w - 82, h - 28);
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.4)'; ctx.fillText('LAGGING', 10, h - 10);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.4)'; ctx.fillText('IMPROVING', 10, 18);
 
+      // Plot Sector Tails
       datasets[currentMarket].filter(s => s.vis).forEach(s => {
         const pts = s.tail.slice(0, animStep + 1);
         const last = pts[pts.length - 1];
