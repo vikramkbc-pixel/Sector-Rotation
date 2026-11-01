@@ -3,8 +3,8 @@ name: Weekly NSE dashboard
 on:
   workflow_dispatch:
   schedule:
-    - cron: '47 0 * * 1,2'
-
+    - cron: '30 13 * * 5,6,0'  # Friday, Saturday, Sunday at 7:00 p.m. IST
+    - cron: '47 0 * * 1'       # Monday at 6:17 a.m. IST
 concurrency:
   group: weekly-nse-pages
   cancel-in-progress: false
