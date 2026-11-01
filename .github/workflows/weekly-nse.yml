@@ -1,0 +1,35 @@
+name: Weekly NSE dashboard
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '47 0 * * 1,2'
+
+concurrency:
+  group: weekly-nse-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/build.py
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - id: publish
+        uses: actions/deploy-pages@v4
