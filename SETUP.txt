@@ -1,0 +1,11 @@
+Weekly NSE refresh for Sector-Rotation
+
+1. Extract the ZIP. Copy its contents, including .github, into the root of the dashboard repository on the default branch.
+2. In repository Settings > Pages, set the publishing source to GitHub Actions. The workflow publishes the dashboard as a single-page site. If the repository also hosts other pages or assets, include them in the public folder during the build before enabling this workflow.
+3. Open Actions > Weekly NSE dashboard > Run workflow. Check that both Build and Deploy finish successfully, then check the weekly close date on the live dashboard.
+
+The workflow checks at 6:17 a.m. India time on Mondays and again on Tuesdays. The Tuesday run also picks up reports that arrived late. Actual start time depends on GitHub. An incomplete report or unavailable source fails the build before deployment, preserving the previous Pages site. The update covers the 24 Indian index signals only. Embedded flow estimates are static.
+
+The package includes a verified baseline through 30 October 2026. The updater uses 28 weeks of dated NSE reports to calculate five trail points. Add future NSE weekday holidays to data/holidays.json and any mandatory special weekend sessions to the calendar check in scripts/build.py when the exchange announces them. Missing reports on expected trading days stop publication.
+
+To run locally, use Python 3 and curl. Run python scripts/build.py, then open public/index.html. The calculation uses only completed Monday–Sunday weeks.

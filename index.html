@@ -96,16 +96,25 @@
         <h2 class="font-semibold text-sm text-white">Institutional Smart Money & Quadrant Screener</h2>
         <input id="searchSector" oninput="renderTable()" type="text" placeholder="Filter sector..." class="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none">
       </div>
+      <label class="text-xs text-slate-300 mb-2">Moved this week
+        <select id="moveFilter" onchange="focusedSector = null; renderAll()" class="bg-slate-950 border border-slate-700 rounded p-1">
+          <option value="">All sectors</option>
+          <option>Lagging → Improving</option>
+          <option>Improving → Leading</option>
+        </select>
+      </label>
+      <p class="text-xs text-slate-400 mb-2">Compares adjacent weekly trail points. Select a sector to highlight its trail. Indian index readings use NSE weekly closes through 30 Oct 2026. The early alert tracks one-week momentum. The 10-week trend compares benchmark-relative strength, normalized to its 14-week average, with ten weeks earlier. Refreshed weekly bars may still be developing. Flow is a snapshot estimate with no volume breakdown.</p>
       <div class="overflow-y-auto flex-1 border border-slate-800/80 rounded-lg">
         <table class="w-full text-left border-collapse text-xs">
           <thead class="bg-slate-950 sticky top-0 z-10 text-slate-400 border-b border-slate-800">
             <tr>
               <th class="p-2">Show</th>
               <th class="p-2">Sector / Index</th>
-              <th class="p-2">Quadrant</th>
+              <th class="p-2">Early alert</th>
+              <th class="p-2">10-week trend</th>
               <th class="p-2 text-right">RS-Ratio</th>
               <th class="p-2 text-right">RS-Mom</th>
-              <th class="p-2 text-right">Smart Money Signal</th>
+              <th class="p-2 text-right">Est. 5-day flow</th>
               <th class="p-2 text-center">Chart</th>
             </tr>
           </thead>
@@ -118,30 +127,30 @@
   <script>
     const datasets = {
       IN: [
-        { id: 'CNXIT', name: 'Nifty IT', yf: '^CNXIT', tv: 'NSE:CNXIT', cat: 'CORE', vis: true, flow: '+₹2,480 Cr (Acc)', tail: [[98.4,99.1],[99.2,100.3],[100.1,101.2],[101.0,101.9],[101.8,102.4]] },
-        { id: 'CNXPHARMA', name: 'Nifty Pharma', yf: '^CNXPHARMA', tv: 'NSE:CNXPHARMA', cat: 'CORE', vis: true, flow: '+₹1,920 Cr (Long)', tail: [[99.5,100.4],[100.3,101.0],[101.2,101.5],[101.9,101.8],[102.5,102.1]] },
-        { id: 'NSEBANK', name: 'Nifty Bank', yf: '^NSEBANK', tv: 'NSE:BANKNIFTY', cat: 'CORE', vis: true, flow: '+₹1,150 Cr (Rebound)', tail: [[98.1,97.8],[98.0,98.6],[98.4,99.5],[99.1,100.4],[99.8,101.1]] },
-        { id: 'CNXAUTO', name: 'Nifty Auto', yf: '^CNXAUTO', tv: 'NSE:CNXAUTO', cat: 'CORE', vis: true, flow: '-₹640 Cr (Profit Book)', tail: [[102.8,101.4],[102.5,100.5],[102.0,99.6],[101.4,99.0],[100.8,98.5]] },
-        { id: 'CNXFMCG', name: 'Nifty FMCG', yf: '^CNXFMCG', tv: 'NSE:CNXFMCG', cat: 'CORE', vis: true, flow: '-₹1,120 Cr (Unwind)', tail: [[101.5,100.2],[101.0,99.4],[100.3,98.8],[99.6,98.3],[99.0,97.9]] },
-        { id: 'CNXMETAL', name: 'Nifty Metal', yf: '^CNXMETAL', tv: 'NSE:CNXMETAL', cat: 'CORE', vis: true, flow: '+₹1,540 Cr (Fresh Long)', tail: [[97.5,98.2],[98.1,99.4],[98.9,100.6],[99.7,101.3],[100.6,101.9]] },
-        { id: 'CNXREALTY', name: 'Nifty Realty', yf: '^CNXREALTY', tv: 'NSE:CNXREALTY', cat: 'CORE', vis: true, flow: '-₹490 Cr (Weakening)', tail: [[103.1,101.0],[102.6,100.1],[101.9,99.3],[101.1,98.7],[100.4,98.2]] },
-        { id: 'CNXENERGY', name: 'Nifty Energy', yf: '^CNXENERGY', tv: 'NSE:CNXENERGY', cat: 'CORE', vis: true, flow: '-₹1,850 Cr (Short Build)', tail: [[100.4,98.9],[99.7,98.2],[99.0,97.6],[98.3,97.2],[97.7,96.9]] },
-        { id: 'CNXPSUBANK', name: 'Nifty PSU Bank', yf: '^CNXPSUBANK', tv: 'NSE:CNXPSUBANK', cat: 'CORE', vis: true, flow: '+₹680 Cr (Bottoming)', tail: [[96.8,97.4],[96.9,98.3],[97.3,99.2],[97.9,100.1],[98.6,100.7]] },
-        { id: 'NIFTYPVTBANK', name: 'Nifty Pvt Bank', yf: 'NIFTYPVTBANK.NS', tv: 'NSE:NIFTY_PVT_BANK', cat: 'CORE', vis: true, flow: '+₹920 Cr (Improving)', tail: [[97.9,98.1],[98.2,99.0],[98.7,99.8],[99.3,100.5],[99.9,101.0]] },
-        { id: 'CNXFINANCE', name: 'Nifty Fin Services', yf: 'NIFTY_FIN_SERVICE.NS', tv: 'NSE:CNXFINANCE', cat: 'CORE', vis: true, flow: '+₹1,310 Cr (Long Build)', tail: [[98.6,99.0],[99.1,99.8],[99.7,100.5],[100.3,101.1],[100.9,101.5]] },
-        { id: 'HEALTHCARE', name: 'Nifty Healthcare', yf: '^CNXPHARMA', tv: 'NSE:NIFTY_HEALTHCARE', cat: 'CORE', vis: false, flow: '+₹1,420 Cr (Leading)', tail: [[99.8,100.5],[100.5,101.1],[101.3,101.6],[102.0,101.9],[102.6,102.2]] },
-        { id: 'CONSDUR', name: 'Nifty Cons Durables', yf: '^CNXCONSUM', tv: 'NSE:NIFTY_CONSR_DURBL', cat: 'CORE', vis: false, flow: '+₹540 Cr (Steady)', tail: [[99.2,99.7],[99.6,100.2],[100.1,100.6],[100.5,100.9],[100.9,101.1]] },
-        { id: 'OILGAS', name: 'Nifty Oil & Gas', yf: '^CNXENERGY', tv: 'NSE:NIFTY_OIL_AND_GAS', cat: 'CORE', vis: false, flow: '-₹980 Cr (Lagging)', tail: [[99.9,98.6],[99.2,98.0],[98.6,97.5],[98.0,97.2],[97.5,97.0]] },
-        { id: 'CNXMEDIA', name: 'Nifty Media', yf: '^CNXMEDIA', tv: 'NSE:CNXMEDIA', cat: 'CORE', vis: false, flow: '-₹310 Cr (Underperform)', tail: [[97.2,97.9],[96.8,97.5],[96.5,97.2],[96.2,97.0],[96.0,96.8]] },
-        { id: 'DEFENCE', name: 'Nifty India Defence', yf: '^CNXPSE', tv: 'NSE:CNXPSE', cat: 'THEME', vis: true, flow: '+₹1,640 Cr (Smart Money)', tail: [[97.8,99.0],[98.5,100.1],[99.3,101.0],[100.1,101.7],[101.0,102.3]] },
-        { id: 'CNXINFRA', name: 'Nifty Infra', yf: '^CNXINFRA', tv: 'NSE:CNXINFRA', cat: 'THEME', vis: true, flow: '+₹790 Cr (Rotation In)', tail: [[99.1,99.4],[99.5,100.0],[100.0,100.5],[100.4,100.9],[100.8,101.2]] },
-        { id: 'CNXPSE', name: 'Nifty PSE', yf: '^CNXPSE', tv: 'NSE:CNXPSE', cat: 'THEME', vis: false, flow: '-₹420 Cr (Cooling)', tail: [[101.8,100.1],[101.2,99.5],[100.6,99.0],[100.1,98.6],[99.6,98.4]] },
-        { id: 'CPSE', name: 'Nifty CPSE', yf: '^CNXPSE', tv: 'NSE:NIFTYCPSE', cat: 'THEME', vis: false, flow: '-₹350 Cr (Cooling)', tail: [[101.5,99.9],[100.9,99.3],[100.4,98.9],[99.9,98.5],[99.5,98.3]] },
-        { id: 'CNXCMDT', name: 'Nifty Commodities', yf: '^CNXCMDT', tv: 'NSE:CNXCMDT', cat: 'THEME', vis: false, flow: '+₹610 Cr (Improving)', tail: [[98.3,98.9],[98.7,99.6],[99.2,100.2],[99.8,100.7],[100.3,101.1]] },
-        { id: 'CNXCONSUM', name: 'Nifty Consumption', yf: '^CNXCONSUM', tv: 'NSE:NIFTY_CONSUMPTION', cat: 'THEME', vis: false, flow: '+₹410 Cr (Neutral)', tail: [[100.4,100.1],[100.3,99.9],[100.1,99.7],[100.0,99.6],[99.9,99.5]] },
-        { id: 'CNXMNC', name: 'Nifty MNC', yf: '^CNXMNC', tv: 'NSE:CNX_MNC', cat: 'THEME', vis: false, flow: '+₹290 Cr (Defensive)', tail: [[99.4,99.6],[99.6,99.9],[99.8,100.1],[100.0,100.3],[100.2,100.4]] },
-        { id: 'MIDCAP', name: 'Nifty Midcap 100', yf: '^CNXMIDCAP', tv: 'NSE:CNXMIDCAP', cat: 'MACRO', vis: true, flow: '+₹1,890 Cr (DII SIP Inflow)', tail: [[100.2,100.4],[100.6,100.8],[101.0,101.1],[101.3,101.4],[101.6,101.6]] },
-        { id: 'SMALLCAP', name: 'Nifty Smallcap 100', yf: '^CNXSMALLCAP', tv: 'NSE:CNXSMALLCAP', cat: 'MACRO', vis: true, flow: '+₹1,120 Cr (High Beta)', tail: [[99.0,99.8],[99.5,100.4],[100.1,100.9],[100.6,101.3],[101.1,101.7]] }
+        { id: 'CNXIT', name: 'Nifty IT', yf: '^CNXIT', tv: 'NSE:CNXIT', cat: 'CORE', vis: true, flow: '+₹2,480 Cr (Acc)', slow: [[102.05019303883525, 100.29853019186665], [101.76115833778637, 96.50033085847068], [109.22526632381036, 101.96718927138546], [110.76981677651303, 103.6061870674759], [109.42006769233059, 105.15709614804638]], tail: [[100.79649156611367, 102.56723143105818], [100.86607869081493, 100.45978627027016], [104, 104], [103.74771222828312, 101.78831583835817], [102.95398485570568, 99.94304803814292]] },
+        { id: 'CNXPHARMA', name: 'Nifty Pharma', yf: '^CNXPHARMA', tv: 'NSE:CNXPHARMA', cat: 'CORE', vis: true, flow: '+₹1,920 Cr (Long)', slow: [[106.44621035890837, 101.85678944886135], [103.95269943517003, 99.23317999060876], [100.09646562973369, 96.99190307476889], [100.28659323954064, 97.29874785810885], [104.60433257883818, 101.65104490718286]], tail: [[102.82081279212113, 100.46854612084873], [101.73136287525753, 98.53175721030561], [100.04531982944816, 97.03948010375578], [100.15222914151084, 100.59105235567314], [102.38338081901097, 104]] },
+        { id: 'NSEBANK', name: 'Nifty Bank', yf: '^NSEBANK', tv: 'NSE:BANKNIFTY', cat: 'CORE', vis: true, flow: '+₹1,150 Cr (Rebound)', slow: [[101.6158398962374, 100.13564183750614], [102.46525637074244, 102.56126381191817], [100.71072125272964, 100.92715754087644], [100.27770634622273, 100.31638483209709], [99.06917906865405, 98.50816707320362]], tail: [[102.43489867448493, 103.01795607196803], [103.06724272220312, 102.35343123323533], [100.87349005389939, 96.21832651106344], [100.34191421859282, 99.02173968842793], [98.87430587500465, 97.28376075043496]] },
+        { id: 'CNXAUTO', name: 'Nifty Auto', yf: '^CNXAUTO', tv: 'NSE:CNXAUTO', cat: 'CORE', vis: true, flow: '-₹640 Cr (Profit Book)', slow: [[97.56876112050196, 94.57653295048364], [95.18008299160364, 90.23505985549926], [95.97014881752092, 89.60669488881416], [94.91196105270112, 89.60690665446009], [95.39297245555862, 90.45354263050649]], tail: [[98.70241578482148, 97.24708092204622], [97.49859342826367, 97.72328998286956], [97.8841369794155, 100.76697010507138], [97.44661861485609, 98.97177809978463], [97.86761147426981, 100.19364719192586]] },
+        { id: 'CNXFMCG', name: 'Nifty FMCG', yf: '^CNXFMCG', tv: 'NSE:CNXFMCG', cat: 'CORE', vis: true, flow: '-₹1,120 Cr (Unwind)', slow: [[98.29129643491875, 99.20954873353246], [100.52227897516228, 103.55652238809044], [97.64929544057112, 100.32160000074184], [96.06963913718941, 99.11108387510679], [96.83621234973218, 101.03855430416849]], tail: [[98.90604362483275, 98.1249000110093], [100.37458591426234, 102.5513315592976], [98.28585913378227, 96], [97.43529487212679, 97.66629878856025], [97.67911724475833, 100.21348180149513]] },
+        { id: 'CNXMETAL', name: 'Nifty Metal', yf: '^CNXMETAL', tv: 'NSE:CNXMETAL', cat: 'CORE', vis: true, flow: '+₹1,540 Cr (Fresh Long)', slow: [[102.89340913858645, 106.2956399932371], [98.48218172961653, 101.61238597114561], [96.87731951747719, 97.15408661993135], [93.9019247987006, 95.06673001203852], [94.64833298227178, 93.46090526503343]], tail: [[101.31105269540429, 98.51784273669692], [99.2776457594296, 96.38175466036172], [98.51377527456162, 98.62527096858408], [97.16817981681949, 97.47867286013225], [97.65374099247556, 100.485340621788]] },
+        { id: 'CNXREALTY', name: 'Nifty Realty', yf: '^CNXREALTY', tv: 'NSE:CNXREALTY', cat: 'CORE', vis: true, flow: '-₹490 Cr (Weakening)', slow: [[100.16191319933415, 92.85635174940931], [96.20105051857364, 90.3224590655404], [96.73722181440554, 93.69667352724487], [94.64344254031724, 90.41568435576127], [96.61677374479196, 91.28994943438815]], tail: [[100.1224144188242, 98.79929075497182], [97.43464785061485, 96], [97.62426010211868, 99.94832168293422], [96.73953560733788, 97.07680677381359], [98.06649717680236, 101.6882134534545]] },
+        { id: 'CNXENERGY', name: 'Nifty Energy', yf: '^CNXENERGY', tv: 'NSE:CNXENERGY', cat: 'CORE', vis: false, flow: '-₹1,850 Cr (Short Build)', slow: [[101.19144195175784, 103.45710959244474], [99.19418985254647, 103.92889642427879], [97.85421948982786, 102.7169637390109], [95.96381103708829, 99.94504361464323], [95.77379078613909, 99.60118956286955]], tail: [[101.41925983669206, 100.65818730367862], [99.04633325606562, 96], [97.63903695190564, 96.84094634896664], [96.53136852920719, 96.487324223971], [96.79757267139533, 99.04998393410033]] },
+        { id: 'CNXPSUBANK', name: 'Nifty PSU Bank', yf: '^CNXPSUBANK', tv: 'NSE:CNXPSUBANK', cat: 'CORE', vis: false, flow: '+₹680 Cr (Bottoming)', slow: [[100.25325675654982, 100.32586543361006], [101.8881969428848, 103.79391662823608], [98.7390585753166, 96.60499814142608], [100.56531232947995, 98.34901973816277], [100.47117287779439, 99.46661173739831]], tail: [[100.26222519160459, 97.66630879697391], [101.96194569694941, 103.60375613289358], [98.6794871895527, 96], [100.6958421147272, 104], [100.59672284346564, 100.06517124312312]] },
+        { id: 'NIFTYPVTBANK', name: 'Nifty Pvt Bank', yf: 'NIFTYPVTBANK.NS', tv: 'NSE:NIFTY_PVT_BANK', cat: 'CORE', vis: false, flow: '+₹920 Cr (Improving)', slow: [[103.23595863305655, 102.30383040717216], [104.50736936276795, 105.37354550406644], [103.23434547724595, 105.51740054625948], [101.69355162226252, 103.7528597119731], [101.01954819230558, 101.52037284670702]], tail: [[102.64066455602841, 103.68527072935566], [103.06248438995016, 101.91567241338797], [102.04111266657084, 98.82167047835989], [101.05675153688506, 98.3261659573291], [100.63743098522063, 99.4233555033457]] },
+        { id: 'CNXFINANCE', name: 'Nifty Fin Services', yf: 'NIFTY_FIN_SERVICE.NS', tv: 'NSE:CNXFINANCE', cat: 'CORE', vis: false, flow: '+₹1,310 Cr (Long Build)', slow: [[100.34791552644089, 100.33161928134408], [101.57755828152614, 101.49194352968804], [100.56484024186754, 101.79392895152576], [99.1701334712954, 100.50381468787681], [98.57034541788103, 99.32032544984799]], tail: [[100.58072308925772, 102.95260986397378], [102.58902629773708, 103.6597491105257], [101.0304573030893, 96.42129932182391], [98.37518937454135, 96], [97.51450101580355, 97.75261458859855]] },
+        { id: 'HEALTHCARE', name: 'Nifty Healthcare', yf: '^CNXPHARMA', tv: 'NSE:NIFTY_HEALTHCARE', cat: 'CORE', vis: false, flow: '+₹1,420 Cr (Leading)', slow: [[104.00439267290963, 99.91920298525038], [101.72507273668465, 97.97491273275885], [97.87459069999466, 95.85451402571675], [98.22580720163072, 96.9852471341227], [102.62317394911067, 101.47181482871228]], tail: [[102.53589642197264, 99.52046426803933], [101.09880920345304, 97.71447202222468], [98.63007161763859, 96], [98.78346250862722, 100.57921855404636], [101.73798060895416, 104]] },
+        { id: 'CONSDUR', name: 'Nifty Cons Durables', yf: '^CNXCONSUM', tv: 'NSE:NIFTY_CONSR_DURBL', cat: 'CORE', vis: false, flow: '+₹540 Cr (Steady)', slow: [[98.22513002823041, 92.20326939076755], [97.5688239919389, 91.71547913127081], [95.71776464790358, 90.95413246255114], [92.21546904973393, 86.26537122365184], [92.58366593666466, 86.94183961004931]], tail: [[98.95291568854817, 96.62591673242376], [97.94821173926297, 99.52167020050373], [96.60867843854301, 97.28609795896482], [96, 96.23063419033953], [96.85330833018415, 99.84242241634645]] },
+        { id: 'OILGAS', name: 'Nifty Oil & Gas', yf: '^CNXENERGY', tv: 'NSE:NIFTY_OIL_AND_GAS', cat: 'CORE', vis: false, flow: '-₹980 Cr (Lagging)', slow: [[100.74038208489105, 101.79315641715448], [99.0509945780758, 100.92473958113207], [98.42892420370791, 100.07274513337386], [99.20135411407179, 100.70961016141703], [96.81298461774954, 97.75535140175592]], tail: [[101.31722382449419, 98.45967684558003], [98.29116049500178, 96], [97.47383767027414, 97.9496465472729], [98.74934023058796, 101.9635724935547], [96.30164335988236, 96]] },
+        { id: 'CNXMEDIA', name: 'Nifty Media', yf: '^CNXMEDIA', tv: 'NSE:CNXMEDIA', cat: 'CORE', vis: false, flow: '-₹310 Cr (Underperform)', slow: [[105.88013055666437, 101.6574036846162], [105.12603385063198, 98.41481271435454], [107.38006361335523, 105.76234550395075], [103.57131221417917, 99.41702620346743], [105.2115170726842, 99.76100469727052]], tail: [[102.79872941347507, 102.56946787228368], [102.38609926417945, 100.01174273167557], [103.31808412586204, 102.73071962059791], [101.74053162095043, 97.3290823643181], [102.43019670231917, 101.97631264152751]] },
+        { id: 'DEFENCE', name: 'Nifty India Defence', yf: '^CNXPSE', tv: 'NSE:CNXPSE', cat: 'THEME', vis: false, flow: '+₹1,640 Cr (Smart Money)', slow: [[102.1083522504638, 100.18600263966972], [100.05278800174314, 101.20047507272777], [99.44438974174871, 97.57777444594144], [94.7551139257967, 91.69343459036911], [94.71782848581934, 91.45049077207359]], tail: [[101.40454467289379, 100.43975938757913], [100.03560293086434, 97.62557769273852], [99.61399508621268, 99.37504163036793], [96.65642333744475, 96], [97.11230555347093, 99.69599713628148]] },
+        { id: 'CNXINFRA', name: 'Nifty Infra', yf: '^CNXINFRA', tv: 'NSE:CNXINFRA', cat: 'THEME', vis: false, flow: '+₹790 Cr (Rotation In)', slow: [[99.2434463763757, 100.01909921730342], [98.63145480741507, 100.13869276284237], [97.88430059631723, 99.03944496635053], [98.40609399830983, 99.51526475821646], [99.3635235779286, 100.45777281715537]], tail: [[97.95825740178906, 96], [96.69841585551384, 96.57822265130972], [96.1192658325261, 96.77473337876802], [97.43023009720213, 101.15299126454872], [98.93829430217373, 102.48363391019627]] },
+        { id: 'CNXPSE', name: 'Nifty PSE', yf: '^CNXPSE', tv: 'NSE:CNXPSE', cat: 'THEME', vis: false, flow: '-₹420 Cr (Cooling)', slow: [[100.43379654719651, 102.47112800669505], [98.7355353595083, 102.84046224152463], [98.03090995343744, 102.41468659715476], [96.73291501738466, 100.33782674472866], [97.28365679802747, 100.3314734077344]], tail: [[100.55745067797524, 98.31107186741387], [98.41431641922684, 96], [97.752735598928, 98.19980370191622], [96.93364394801942, 97.36353129293953], [97.38929756077275, 100.21238426464934]] },
+        { id: 'CPSE', name: 'Nifty CPSE', yf: '^CNXPSE', tv: 'NSE:NIFTYCPSE', cat: 'THEME', vis: false, flow: '-₹350 Cr (Cooling)', slow: [[100.71171088559339, 104.76390650193743], [98.6386843050325, 106.11259849149523], [97.28148910789277, 104.96174603216217], [96.86324392076433, 103.1856600832004], [98.30253712519132, 102.640807123362]], tail: [[100.59057277354809, 98.58008409648454], [98.82533173232557, 96.33962744568387], [97.7945224386142, 97.54190226427446], [97.68499421793402, 99.0405184021425], [98.54056984056601, 101.54931642220211]] },
+        { id: 'CNXCMDT', name: 'Nifty Commodities', yf: '^CNXCMDT', tv: 'NSE:CNXCMDT', cat: 'THEME', vis: false, flow: '+₹610 Cr (Improving)', slow: [[99.9414754124638, 102.3233817777248], [97.4418846784383, 101.02445235834425], [96.94252800487436, 99.62079785611176], [96.18753747456273, 99.2849453237945], [96.53809111830935, 98.89757001984341]], tail: [[99.87025756274373, 96], [96.08981957784808, 96], [96.44997435174321, 98.40076991673453], [96.57351794835743, 98.36306999164266], [97.23838334808363, 99.96716466412514]] },
+        { id: 'CNXCONSUM', name: 'Nifty Consumption', yf: '^CNXCONSUM', tv: 'NSE:NIFTY_CONSUMPTION', cat: 'THEME', vis: false, flow: '+₹410 Cr (Neutral)', slow: [[98.78344728166601, 96.49885582627284], [98.74460208935172, 96.13536937626078], [97.51113982463093, 95.04663366542111], [96.9954946890357, 94.4130357288285], [98.47612527221543, 96.5911272041689]], tail: [[98.25362895210144, 96], [98.24442446022977, 99.83538680767228], [96.98701342369537, 97.08343712165015], [96.80094707351985, 98.8378761211464], [98.43815959972046, 102.43896674328874]] },
+        { id: 'CNXMNC', name: 'Nifty MNC', yf: '^CNXMNC', tv: 'NSE:CNX_MNC', cat: 'THEME', vis: false, flow: '+₹290 Cr (Defensive)', slow: [[98.5612327178472, 97.59018449488705], [97.53378152602198, 97.1470519898425], [94.56294661577212, 93.28982833668427], [91.62663422219019, 90.04434959656196], [92.56574995651742, 92.02160085265179]], tail: [[97.6118205967082, 96.05750273506557], [96.73727694935897, 97.13616982251142], [96, 96], [96, 96.85969320339407], [96.92083448610826, 100.22776388602065]] },
+        { id: 'MIDCAP', name: 'Nifty Midcap 100', yf: '^CNXMIDCAP', tv: 'NSE:CNXMIDCAP', cat: 'MACRO', vis: false, flow: '+₹1,890 Cr (DII SIP Inflow)', slow: [[100.20476593245235, 99.31850271287152], [99.72948302352677, 99.59016845186267], [97.7306861114416, 97.74085205704965], [94.70649766207586, 93.60517446947014], [95.62247095119228, 94.30931106379496]], tail: [[100.2481985449727, 98.94740560503777], [99.63456339920964, 99.16380675901065], [97.31915433382602, 96], [96, 96], [97.05794126487375, 100.77091659780969]] },
+        { id: 'SMALLCAP', name: 'Nifty Smallcap 100', yf: '^CNXSMALLCAP', tv: 'NSE:CNXSMALLCAP', cat: 'MACRO', vis: false, flow: '+₹1,120 Cr (High Beta)', slow: [[103.56448345858826, 100.90094112446593], [103.08338835528741, 101.09895226489847], [99.96070866359317, 96.6764530593262], [95.00161103142123, 92.00537894065152], [96.87961211621324, 92.83335753616997]], tail: [[101.83892900814281, 99.77590300152804], [101.63196586898718, 100.05806719233327], [99.97834191163174, 97.11705775778854], [97.35699126927697, 96], [98.30536309711567, 101.89012803968397]] }
       ],
       GL: [
         { id: 'XLK', name: 'US Technology (XLK)', yf: 'XLK', tv: 'AMEX:XLK', cat: 'CORE', vis: true, flow: '+$3.4B (AI Inflow)', tail: [[99.6,100.5],[100.4,101.2],[101.1,101.8],[101.8,102.2],[102.4,102.6]] },
@@ -264,8 +273,12 @@
       resetZoom();
     });
 
+    const closeDates = ["01 Oct 2026", "09 Oct 2026", "16 Oct 2026", "23 Oct 2026", "30 Oct 2026"];
+    let focusedSector = null;
     function switchMarket(m) {
+      focusedSector = null;
       currentMarket = m;
+      document.getElementById('statusLabel').textContent = m === 'IN' ? '● NSE weekly closes · 30 Oct 2026' : '● Global snapshot / weekly feed';
       document.getElementById('btnIndia').className = m === 'IN' ? 'px-3 py-1.5 rounded-md text-xs font-semibold bg-indigo-600 text-white transition' : 'px-3 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition';
       document.getElementById('btnGlobal').className = m === 'GL' ? 'px-3 py-1.5 rounded-md text-xs font-semibold bg-indigo-600 text-white transition' : 'px-3 py-1.5 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition';
       document.getElementById('benchmarkLabel').innerHTML = m === 'IN' ? 'Benchmark: <strong class="text-white">NIFTY 50 (^NSEI)</strong>' : 'Benchmark: <strong class="text-white">S&P 500 (SPY)</strong>';
@@ -273,6 +286,7 @@
     }
 
     function setCategory(cat) {
+      focusedSector = null;
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(btn => {
         if (btn.dataset.cat === cat) {
@@ -288,6 +302,7 @@
     }
 
     function filterQuadrant(quadName) {
+      focusedSector = null;
       datasets[currentMarket].forEach(item => {
         const last = item.tail[animStep];
         const q = getQuadrant(last[0], last[1]);
@@ -297,12 +312,14 @@
     }
 
     function toggleAllVisibility(state) {
+      focusedSector = null;
       datasets[currentMarket].forEach(s => s.vis = state);
       renderAll();
     }
 
     function toggleSector(id) {
       const item = datasets[currentMarket].find(x => x.id === id);
+      if (focusedSector === id) focusedSector = null;
       if (item) item.vis = !item.vis;
       renderAll();
     }
@@ -357,6 +374,8 @@
       ctx.fillStyle = 'rgba(56, 189, 248, 0.4)'; ctx.fillText('IMPROVING', 10, 18);
 
       datasets[currentMarket].filter(s => s.vis).forEach(s => {
+        ctx.save();
+        ctx.globalAlpha = focusedSector && focusedSector !== s.id ? 0.15 : 1;
         const pts = s.tail.slice(0, animStep + 1);
         const last = pts[pts.length - 1];
         const quad = getQuadrant(last[0], last[1]);
@@ -382,7 +401,8 @@
         const lx = toX(last[0]), ly = toY(last[1]);
         ctx.font = '600 11px Inter';
         ctx.fillStyle = '#f8fafc';
-        ctx.fillText(s.name.replace('Nifty ', ''), lx + 8, ly + 4);
+        if (!focusedSector || focusedSector === s.id) ctx.fillText(s.name.replace('Nifty ', ''), lx + 8, ly + 4);
+        ctx.restore();
       });
     }
 
@@ -396,25 +416,36 @@
         .forEach(s => {
           const last = s.tail[animStep];
           const quad = getQuadrant(last[0], last[1]);
+          const previous = animStep > 0 ? getQuadrant(...s.tail[animStep - 1]).name : null;
+          const move = previous && previous !== quad.name ? previous + ' → ' + quad.name : '';
+          const filter = document.getElementById('moveFilter').value;
+          if (filter && (move !== filter || s.flow === 'Custom Plot' && !s.refreshed)) return;
           const tr = document.createElement('tr');
+          tr.onclick = () => {
+            focusedSector = focusedSector === s.id ? null : s.id;
+            s.vis = true;
+            renderAll();
+          };
           tr.className = 'hover:bg-slate-800/60 transition cursor-pointer';
           tr.innerHTML = `
             <td class="p-2" onclick="event.stopPropagation()">
               <input type="checkbox" ${s.vis ? 'checked' : ''} onchange="toggleSector('${s.id}')" class="accent-indigo-500 cursor-pointer">
             </td>
-            <td class="p-2 font-medium text-white" onclick="openTradingView('${s.yf}')">${s.name}</td>
-            <td class="p-2" onclick="openTradingView('${s.yf}')">
-              <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${quad.badge}">${quad.name}</span>
+            <td class="p-2 font-medium text-white" ><button type="button" aria-pressed="${focusedSector === s.id}">${s.name}</button></td>
+            <td class="p-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${quad.badge}">${move || quad.name}</span><small class="block text-slate-400">${s.slow ? closeDates[animStep] : s.refreshed ? "Weekly feed · close unverified" : s.flow === "Custom Plot" ? "Placeholder" : "Curated snapshot"}</small>
             </td>
+            <td class="p-2">${s.slow ? getQuadrant(...s.slow[animStep]).name : "Unavailable"}</td>
             <td class="p-2 text-right mono text-slate-200">${last[0].toFixed(2)}</td>
             <td class="p-2 text-right mono text-slate-200">${last[1].toFixed(2)}</td>
             <td class="p-2 text-right mono text-[11px] ${s.flow.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}">${s.flow}</td>
             <td class="p-2 text-center">
-              <button onclick="openTradingView('${s.yf}')" class="px-2 py-0.5 rounded bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[11px] font-semibold transition">📈 Open Chart</button>
+              <button onclick="event.stopPropagation(); openTradingView('${s.yf}')" class="px-2 py-0.5 rounded bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[11px] font-semibold transition">📈 Open Chart</button>
             </td>
           `;
           tbody.appendChild(tr);
         });
+      if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="8" class="p-3 text-slate-400">No sectors match these filters.</td></tr>';
     }
 
     function animateRotation() {
@@ -442,6 +473,10 @@
 
     let isSyncing = false;
     async function syncLiveYahooData() {
+      if (currentMarket === 'IN' && datasets.IN.every(s => s.slow)) {
+        document.getElementById('statusLabel').textContent = '● NSE weekly closes · 30 Oct 2026';
+        return;
+      }
       if (isSyncing) return;
       isSyncing = true;
       const btnText = document.getElementById('syncText');
@@ -451,7 +486,7 @@
       try {
         const benchTicker = currentMarket === 'IN' ? '^NSEI' : 'SPY';
         const benchCloses = await fetchYahooCloses(benchTicker);
-        const list = datasets[currentMarket].filter(s => s.vis);
+        const list = datasets[currentMarket].filter(s => s.vis && !s.slow);
 
         for (const item of list) {
           try {
@@ -473,6 +508,7 @@
                 newTail.push([Math.max(96, Math.min(104, r)), Math.max(96, Math.min(104, m))]);
               }
               item.tail = newTail;
+              item.refreshed = true;
             }
           } catch (innerErr) {}
         }
