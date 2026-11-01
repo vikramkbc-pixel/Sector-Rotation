@@ -31,9 +31,11 @@ def download(url):
     return body.decode("utf-8-sig")
 
 
-def weekly_close(sunday, names, holidays):
+def weekly_close(sunday, names, holidays, through=None):
     for offset in range(7):
         date = sunday - offset * DAY
+        if through and date > through:
+            continue
         url = f"https://archives.nseindia.com/content/indices/ind_close_all_{date:%d%m%Y}.csv"
         body = download(url)
         if body is None:
@@ -70,14 +72,16 @@ def calculate(rows, names):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--week-ending", type=dt.date.fromisoformat, help="Completed Sunday (YYYY-MM-DD)")
+    parser.add_argument("--week-ending", type=dt.date.fromisoformat, help="Sunday identifying the trading week (YYYY-MM-DD)")
     parser.add_argument("--output", type=Path, default=ROOT / "public")
     args = parser.parse_args()
-    today = dt.datetime.now(dt.timezone(dt.timedelta(hours=5, minutes=30))).date()
-    latest = today - (today.weekday()+1)*DAY
+    now = dt.datetime.now(dt.timezone(dt.timedelta(hours=5, minutes=30)))
+    through = now.date() if now.hour >= 19 else now.date() - DAY
+    friday = through - (through.weekday() - 4) % 7 * DAY
+    latest = friday + 2 * DAY
     end = args.week_ending or latest
     if end.weekday() != 6 or end > latest:
-        raise ValueError("Choose a completed week ending on Sunday.")
+        raise ValueError("Choose a week whose Friday reporting cutoff has passed.")
     seed = json.loads((ROOT/"data/baseline.json").read_text())
     names = list(seed[-1]["closes"])
     if len(names) != 25 or "Nifty 50" not in names:
@@ -90,7 +94,7 @@ def main():
     rows = []
     for i in reversed(range(28)):
         sunday = end - i*WEEK
-        row = cached.get(sunday) or weekly_close(sunday, names, holidays)
+        row = cached.get(sunday) or weekly_close(sunday, names, holidays, through)
         if any(not math.isfinite(row["closes"][n]) or row["closes"][n] <= 0 for n in names):
             raise ValueError(f"Invalid close in {row['date']}")
         rows.append(row)
@@ -114,4 +118,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
